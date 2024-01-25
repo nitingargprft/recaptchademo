@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+
+    <!-- Your website content goes here -->
+    <!-- Add a hidden input field to store the reCAPTCHA v3 token -->
+    <input type="hidden" id="recaptcha-token" value="">
+
+    <!-- Add a CAPTCHA container div -->
+    <div id="captcha-container" style="display: none;">
+        <!-- Display the CAPTCHA challenge here -->
+        <div class="g-recaptcha" data-sitekey="6LdAqFwpAAAAALNtPM0MqTZkmGI0-M7-4a4wDHUh"></div>
+    </div>
+
+    <button id="submit-button">Submit</button>
+
+    <script>
+        // Function to execute when the submit button is clicked
+        document.getElementById("submit-button").addEventListener("click", function () {
+
+            // Capture the reCAPTCHA v2 token
+            var recaptchaResponse = grecaptcha.getResponse();
+            debugger;
+            if (recaptchaResponse) {
+                $.post("/home/VerifyRecaptchaV2", { token: recaptchaResponse }, function (response) {
+                    debugger;
+                    if (response.success == true) {
+                        alert("Validated Successfully");
+
+                    } else {
+                        // Proceed with normal form submission
+                    }
+                });
+            }
+            else {
+                // Call the reCAPTCHA v3 API to get a score
+                grecaptcha.ready(function () {
+                    grecaptcha.execute('6LeCm1wpAAAAAL1oZY-9SBJpcfW3w2jEqSTMTG_i', { action: 'submit_form' }).then(function (token) {
+                        // Store the reCAPTCHA token in the hidden input field
+                        document.getElementById("recaptcha-token").value = token;
+
+                        // Send the token and other form data to your server for validation
+                        sendFormDataToServer(token);
+                    });
+                });
+            }
+
+        });
+
+        // Function to send form data and reCAPTCHA token to the server
+        function sendFormDataToServer(token) {
+            // Example AJAX request to your server for validation
+            var formData = {
+                token: token,
+                // Other form data here
+            };
+
+            console.log(formData.token);
+            debugger;
+            // Send the data to your server
+            // Adapt this part to your server-side code to verify the token and score
+            // and decide whether to display the CAPTCHA or proceed with the form submission.
+            // Example:
+            $.post("/home/VerifyCaptcha", { token: token }, function (response) {
+                debugger;
+                if (response.success == false) {
+                    // Display the CAPTCHA container
+                    document.getElementById("captcha-container").style.display = "block";
+                } else {
+                    // Proceed with normal form submission
+                }
+            });
+        }
+    </script>
+</div>
